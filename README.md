@@ -97,7 +97,7 @@ function loadDefFile([string]$defFileName)
     $f = (Get-Content $defFileName) -as [string[]]
     $lines = @()
 
-    # 音階名と周波数に分け、配列に格納する
+    # 音階名とノートナンバーに分け、配列に格納する
     foreach ($currentLine in $f) {
 
         # コメント開始位置の検出
@@ -116,7 +116,7 @@ function loadDefFile([string]$defFileName)
         # TABの削除
         $currentLine = $currentLine.Replace("`t", "")
 
-        # "="で区切り、音階と周波数に分けて格納する
+        # "="で区切り、音階とノートナンバーに分けて格納する
         if ($currentLine -ne "") {
             $scale, $note = $currentLine -split "="
             $lines += New-Object PSObject -Property @{scale=$scale; note=$note}
@@ -163,7 +163,7 @@ function loadPlayFile([string]$musicFile)
 }
 
 ##--------------------------------------------------------##
-## 音階文字列を検索し、ノート番号をセットする
+## 音階文字列を検索し、ノートナンバーをセットする
 ##--------------------------------------------------------##
 function replaceScalt_to_Freq([array]$defs, [array]$playData)
 {
@@ -224,7 +224,7 @@ $defs = loadDefFile "note-number.dat"
 $playData = @()
 $playData = loadPlayFile $musicFile
 
-# 音階をMIDIノート番号に変換する
+# 音階をMIDIノートナンバーに変換する
 $playData = replaceScalt_to_Freq $defs $playData
 
 
