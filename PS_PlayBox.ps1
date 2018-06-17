@@ -27,7 +27,7 @@ function loadDefFile([string]$defFileName)
         # TABの削除
         $currentLine = $currentLine.Replace("`t", "")
 
-        # "="で区切り、音階と周波数に分けて格納する
+        # "="で区切り、音階とノートナンバーに分けて格納する
         if ($currentLine -ne "") {
             $scale, $note = $currentLine -split "="
             $lines += New-Object PSObject -Property @{scale=$scale; note=$note}
@@ -125,7 +125,6 @@ if (-Not($musicFile)) {
 }
 
 if (-Not($timbre)) {
-    #$timbre = 42     # 0x2axx   ビオラ？チェロ？
     $timbre = 1     # ピアノ
 }
 
