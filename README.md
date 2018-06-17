@@ -384,7 +384,7 @@ PS D:\PS_PlayBox> .\PS_PlayBox.ps1
 Usage : PlayMIDI.ps1 musicDataFile <timbre>
 ```
 
-tibreはMIDIの音色（楽器）の指定です。0～128の数値で指定してください。  
+timbreはMIDIの音色（楽器）の指定です。0～128の数値で指定してください。  
 以下は、さきほどの『ごぎつねこんこん』(PS_kitune.txt)をハーモニカ(23)で演奏する例です。
 
 ```
