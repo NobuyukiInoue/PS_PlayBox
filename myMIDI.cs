@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
@@ -19,11 +19,11 @@ public class myMIDI
 
     [DllImport("Winmm.dll", EntryPoint = "midiOutOpen")]
     private static extern MMRESULT midiOutOpen(
-       ref LPHMIDIOUT lphmo,
-       UINT uDeviceID,
-       DWORD_PTR dwCallback,
-       DWORD_PTR dwCallbackInstance,
-       DWORD dwFlags
+        ref LPHMIDIOUT lphmo,
+        UINT uDeviceID,
+        DWORD_PTR dwCallback,
+        DWORD_PTR dwCallbackInstance,
+        DWORD dwFlags
     );
 
     [DllImport("Winmm.dll", EntryPoint = "midiOutShortMsg")]
@@ -34,29 +34,29 @@ public class myMIDI
 
     [DllImport("Winmm.dll", EntryPoint = "midiOutReset")]
     private static extern MMRESULT midiOutReset(
-          HMIDIOUT hmo
+        HMIDIOUT hmo
     );
 
     [DllImport("Winmm.dll", EntryPoint = "midiOutClose")]
     private static extern MMRESULT midiOutClose(
-          HMIDIOUT hmo
+        HMIDIOUT hmo
     );
 
     public void Init(UInt32 timbre)
     {
         midiOutOpen(ref h, MIDI_MAPPER, (System.IntPtr)0, (System.IntPtr)0, 0);
-        midiOutShortMsg(h, timbre);     // éŸ³è‰²ã‚’å®šç¾©
+        midiOutShortMsg(h, timbre);     // ‰¹F‚ğ’è‹`
     }
 
     public void OutOnly(UInt32 outData)
     {
-        midiOutShortMsg(h, outData);    // éµç›¤ã‚’æŠ¼ã™
+        midiOutShortMsg(h, outData);    // Œ®”Õ‚ğ‰Ÿ‚·
     }
 
     public void Out(UInt32 outData, Int32 len)
     {
-        midiOutShortMsg(h, outData);         // éµç›¤ã‚’æŠ¼ã™
-        System.Threading.Thread.Sleep(len);  // ä¸€å®šæ™‚é–“éŸ³ã‚’é³´ã‚‰ã—ç¶šã‘ã‚‹
+        midiOutShortMsg(h, outData);         // Œ®”Õ‚ğ‰Ÿ‚·
+        System.Threading.Thread.Sleep(len);  // ˆê’èŠÔ‰¹‚ğ–Â‚ç‚µ‘±‚¯‚é
     }
 
     public void Close()
