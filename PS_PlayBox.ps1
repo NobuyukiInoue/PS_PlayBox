@@ -1,5 +1,6 @@
 param( $musicFile, $timbre )
 
+
 ##--------------------------------------------------------##
 ## 音階定義ファイルの読み込み
 ##--------------------------------------------------------##
@@ -37,6 +38,7 @@ function loadDefFile([string]$defFileName)
     return($lines)
 }
 
+
 ##--------------------------------------------------------##
 ## 音譜ファイルの読み込み
 ##--------------------------------------------------------##
@@ -73,6 +75,7 @@ function loadPlayFile([string]$musicFile)
     return($lines)
 }
 
+
 ##--------------------------------------------------------##
 ## 音階文字列を検索し、ノートナンバーをセットする
 ##--------------------------------------------------------##
@@ -104,23 +107,79 @@ function replaceScalt_to_Freq([array]$defs, [array]$playData)
     return($playData)
 }
 
-<#
+
 ##--------------------------------------------------------##
-## 16進数文字列を数値に変換する
+## メイン処理
 ##--------------------------------------------------------##
-function toHex([string]tempStr)
+function PlayBox_Main($musicFile, $timbre)
 {
-	$ret = [Convert]::ToInt32($tempStr, 16)
-	return($ret)
+    $defs = @()
+    $defs = loadDefFile "note-number.dat" 
+
+    $playData = @()
+    $playData = loadPlayFile $musicFile
+
+    # 音階をMIDIノートナンバーに変換する
+    $playData = replaceScalt_to_Freq $defs $playData
+
+
+    ##-----------------------------------------##
+    ## CSharpライブラリの読み込み(Win32API参照)
+    ##-----------------------------------------##
+    add-type -path .\myMIDI.cs -passThru
+    $pm = New-Object myMIDI
+
+    $initData = [UINT32]$timbre*256 + [Convert]::ToInt32("c0", 16)
+    $pm.INIT($initData)    # MIDI初期化
+
+    Write-Host
+    Write-Host "Load Done. Play Start!!"
+
+    for ($i = 0; $i -lt $playData.Length; $i++) {
+
+        if ($playData[$i].note -ne "") {
+            Write-Host "[$i] = "$playData[$i].scale"("$playData[$i].note"), "$playData[$i].tlen"[ms]"
+
+            $cnote = $playData[$i].note -split ","
+
+            foreach ($data in $cnote) {
+
+                # MIDIに出力する
+                $note_on = "7f" + $data + "90"
+                $play_on = [Convert]::ToInt32($note_on, 16)
+
+                # 鍵盤を押す
+                $pm.OutOnly($play_on)
+            }
+
+            # 一定時間鳴らし続ける
+            $pm.Sleep($playData[$i].tlen)
+
+            foreach ($data in $cnote) {
+                $note_off = "7f" + $data + "80"
+                $play_off = [Convert]::ToInt32($note_off, 16)
+
+                # 鍵盤を離す
+                $pm.OutOnly($play_off)
+            }
+        } 
+        else {
+            Write-Host "[$i] = rest ("$playData[$i].note"), "$playData[$i].tlen"[ms]"
+
+            # 休符
+            $pm.Sleep($playData[$i].tlen)
+        }
+    }
+
+    $pm.Close()
 }
-#>
+
 
 ##--------------------------------------------------------##
-## Main
+## 前処理
 ##--------------------------------------------------------##
-
 if (-Not($musicFile)) {
-    Write-Host "Usage : PlayMIDI.ps1 musicDataFile <timbre>"
+    Write-Host "Usage :"$MyInvocation.MyCommand.Name"musicDataFile <timbre>"
     exit
 }
 
@@ -128,62 +187,5 @@ if (-Not($timbre)) {
     $timbre = 1     # ピアノ
 }
 
-$defs = @()
-$defs = loadDefFile "note-number.dat" 
-
-$playData = @()
-$playData = loadPlayFile $musicFile
-
-# 音階をMIDIノートナンバーに変換する
-$playData = replaceScalt_to_Freq $defs $playData
-
-
-##-----------------------------------------##
-## CSharpライブラリの読み込み(Win32API参照)
-##-----------------------------------------##
-add-type -path .\myMIDI.cs -passThru
-$pm = New-Object myMIDI
-
-$initData = [UINT32]$timbre*256 + [Convert]::ToInt32("c0", 16)
-$pm.INIT($initData)    # MIDI初期化
-
-Write-Host
-Write-Host "Load Done. Play Start!!"
-
-for ($i = 0; $i -lt $playData.Length; $i++) {
-
-    if ($playData[$i].note -ne "") {
-        Write-Host "[$i] = "$playData[$i].scale"("$playData[$i].note"), "$playData[$i].tlen"[ms]"
-
-        $cnote = $playData[$i].note -split ","
-
-        foreach ($data in $cnote) {
-
-            # MIDIに出力する
-            $note_on = "7f" + $data + "90"
-            $play_on = [Convert]::ToInt32($note_on, 16)
-
-            # 鍵盤を押す
-            $pm.OutOnly($play_on)
-        }
-
-        # 一定時間鳴らし続ける
-        $pm.Sleep($playData[$i].tlen)
-
-        foreach ($data in $cnote) {
-            $note_off = "7f" + $data + "80"
-            $play_off = [Convert]::ToInt32($note_off, 16)
-
-            # 鍵盤を離す
-            $pm.OutOnly($play_off)
-        }
-    } 
-    else {
-        Write-Host "[$i] = rest ("$playData[$i].note"), "$playData[$i].tlen"[ms]"
-
-        # 休符
-        $pm.Sleep($playData[$i].tlen)
-    }
-}
-
-$pm.Close()
+# メイン処理
+PlayBox_Main $musicFile $timbre
